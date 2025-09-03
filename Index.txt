@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pro Earning App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- Professional Styling --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;7d-flex00&display=swap');
+
+        :root {
+            --bg-color: #121212;
+            --primary-card-color: #1e1e1e;
+            --secondary-card-color: #2a2a2a;
+            --text-color: #e0e0e0;
+            --primary-accent: #6a11cb;
+            --secondary-accent: #2575fc;
+            --success-color: #28a745;
+            --gold-color: #FFD700;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 80px; /* For nav bar */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        /* --- Header --- */
+        .header {
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .header h2 { margin: 0 0 5px 0; }
+        .header .balance { font-size: 2.5em; font-weight: 700; }
+
+        /* --- Navigation --- */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--primary-card-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.4);
+            border-top: 1px solid #333;
+        }
+        .nav-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .nav-button i { font-size: 20px; }
+        .nav-button.active { opacity: 1; color: var(--secondary-accent); }
+
+        /* --- Sections --- */
+        .section {
+            display: none;
+            padding: 10px;
+            animation: fadeIn 0.5s;
+        }
+        .section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background-color: var(--primary-card-color);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h3 {
+            margin-top: 0;
+            font-size: 1.5em;
+            background: -webkit-linear-gradient(45deg, var(--primary-accent), var(--secondary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Tap Section --- */
+        #tap-icon {
+            font-size: 8em;
+            color: var(--gold-color);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+        #tap-icon:active {
+            transform: scale(0.9);
+        }
+
+        /* --- Spin Section --- */
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 20px auto;
+        }
+        #spin-wheel {
+            width: 100%;
+            height: 100%;
+            background-image: url('https://i.ibb.co/fDY5W5f/spinning-wheel.png'); /* Using a pre-made image */
+            background-size: cover;
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        #spin-arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--gold-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            color: white;
+            margin-top: 15px;
+        }
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        
+        /* --- Withdrawal Form --- */
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: var(--secondary-card-color);
+            color: white;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h2>Total Balance</h2>
+            <p class="balance">₹<span id="balance">0.00</span></p>
+        </div>
+
+        <!-- Tap Section -->
+        <div id="tap-section" class="section active">
+            <div class="card">
+                <h3>Tap to Earn</h3>
+                <p>You have <strong id="taps-left">1000</strong> taps left today.</p>
+                <i id="tap-icon" class="fa-solid fa-coins"></i>
+                <p>You get ₹0.01 per tap</p>
+            </div>
+        </div>
+
+        <!-- Spin Section -->
+        <div id="spin-section" class="section">
+            <div class="card">
+                <h3>Spin the Wheel</h3>
+                <p>You have <strong id="spins-left">1</strong> spin left today.</p>
+                <div class="wheel-container">
+                    <div id="spin-wheel"></div>
+                    <div id="spin-arrow"></div>
+                </div>
+                <button id="spin-btn" class="btn">SPIN NOW</button>
+            </div>
+        </div>
+
+        <!-- Ads Section -->
+        <div id="ads-section" class="section">
+            <div class="card">
+                <h3>Watch Ads</h3>
+                <p>Click the button below to load an ad and earn rewards.</p>
+                
+                <!-- YAHAN APNA AD SCRIPT DAALEIN -->
+                <!-- Example: <div id="ad-container"></div> -->
+                
+                <button id="load-ad-btn" class="btn">Load Ad & Earn ₹0.50</button>
+            </div>
+        </div>
+
+        <!-- Withdraw Section -->
+        <div id="withdraw-section" class="section">
+            <div class="card">
+                <h3>Withdraw Money</h3>
+                <p>Minimum withdrawal is ₹50.</p>
+                <div class="form-group">
+                    <input type="text" id="name" placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="payment-info" placeholder="UPI ID / Number">
+                </div>
+                <div class="form-group">
+                    <input type="number" id="amount" placeholder="Amount (e.g., 50)">
+                </div>
+                <button id="submit-withdraw-btn" class="btn">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <button class="nav-button active" data-section="tap-section"><i class="fa-solid fa-hand-pointer"></i>Tap</button>
+        <button class="nav-button" data-section="spin-section"><i class="fa-solid fa-dharmachakra"></i>Spin</button>
+        <button class="nav-button" data-section="ads-section"><i class="fa-solid fa-video"></i>Ads</button>
+        <button class="nav-button" data-section="withdraw-section"><i class="fa-solid fa-wallet"></i>Withdraw</button>
+    </nav>
+
+    <script>
+        // --- CONFIGURATION ---
+        const BOT_TOKEN = 'AAPKA_BOT_TOKEN_YAHA_DAALEIN';
+        const CHAT_ID = 'AAPNA_CHAT_ID_YAHA_DAALEIN';
+        const MIN_WITHDRAWAL = 50;
+        
+        const REWARD_PER_AD = 0.50;
+        const REWARD_PER_TAP = 0.01;
+        const DAILY_TAPS = 1000;
+        const DAILY_SPINS = 1;
+        
+        // Spin wheel segments and their rewards
+        const spinSegments = [1, 0.5, 2, 0, 5, 0.2, 1.5, 0.1]; // Rewards in rupees
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#121212');
+
+            // --- Elements ---
+            const balanceEl = document.getElementById('balance');
+            const navButtons = document.querySelectorAll('.nav-button');
+            const sections = document.querySelectorAll('.section');
+            
+            // Tap section
+            const tapIcon = document.getElementById('tap-icon');
+            const tapsLeftEl = document.getElementById('taps-left');
+
+            // Spin section
+            const spinBtn = document.getElementById('spin-btn');
+            const spinWheel = document.getElementById('spin-wheel');
+            const spinsLeftEl = document.getElementById('spins-left');
+
+            // Ads section
+            const loadAdBtn = document.getElementById('load-ad-btn');
+            
+            // Withdraw section
+            const submitWithdrawBtn = document.getElementById('submit-withdraw-btn');
+            
+            // --- State (Data) ---
+            let state = {
+                balance: 0,
+                tapsLeft: DAILY_TAPS,
+                spinsLeft: DAILY_SPINS,
+                lastReset: new Date().toDateString()
+            };
+
+            // --- Functions ---
+            function saveData() {
+                localStorage.setItem('appState', JSON.stringify(state));
+            }
+
+            function loadData() {
+                const savedState = JSON.parse(localStorage.getItem('appState'));
+                if (savedState) {
+                    state = savedState;
+                }
+                // Check for daily reset
+                const today = new Date().toDateString();
+                if (state.lastReset !== today) {
+                    state.tapsLeft = DAILY_TAPS;
+                    state.spinsLeft = DAILY_SPINS;
+                    state.lastReset = today;
+                    saveData();
+                }
+            }
+
+            function updateUI() {
+                balanceEl.innerText = state.balance.toFixed(2);
+                tapsLeftEl.innerText = state.tapsLeft;
+                spinsLeftEl.innerText = state.spinsLeft;
+                
+                if (state.tapsLeft <= 0) {
+                    tapIcon.style.opacity = 0.5;
+                }
+                if (state.spinsLeft <= 0) {
+                    spinBtn.disabled = true;
+                    spinBtn.innerText = 'Come Back Tomorrow';
+                }
+            }
+            
+            function showSection(sectionId) {
+                sections.forEach(sec => sec.classList.remove('active'));
+                document.getElementById(sectionId).classList.add('active');
+
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`.nav-button[data-section="${sectionId}"]`).classList.add('active');
+            }
+
+            // --- Event Listeners ---
+            
+            // Navigation
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    showSection(button.dataset.section);
+                });
+            });
+
+            // Tap to Earn
+            tapIcon.addEventListener('click', () => {
+                if (state.tapsLeft > 0) {
+                    state.tapsLeft--;
+                    state.balance += REWARD_PER_TAP;
+                    updateUI();
+                    saveData();
+                    tg.HapticFeedback.impactOccurred('light');
+                } else {
+                    tg.showAlert('You have used all your taps for today!');
+                }
+            });
+
+            // Spin the Wheel
+            spinBtn.addEventListener('click', () => {
+                if (state.spinsLeft > 0) {
+                    state.spinsLeft--;
+                    spinBtn.disabled = true;
+                    
+                    const totalSegments = spinSegments.length;
+                    const randomSegment = Math.floor(Math.random() * totalSegments);
+                    const reward = spinSegments[randomSegment];
+                    const degreePerSegment = 360 / totalSegments;
+                    // Random offset within the segment for variability
+                    const randomOffset = (Math.random() * degreePerSegment) - (degreePerSegment / 2);
+                    const finalDegree = (randomSegment * degreePerSegment) + randomOffset;
+                    
+                    const fullSpins = 5;
+                    const totalRotation = (360 * fullSpins) + finalDegree;
+
+                    spinWheel.style.transform = `rotate(${totalRotation}deg)`;
+                    
+                    setTimeout(() => {
+                        state.balance += reward;
+                        updateUI();
+                        saveData();
+                        tg.HapticFeedback.notificationOccurred('success');
+                        if (reward > 0) {
+                            tg.showAlert(`Congratulations! You won ₹${reward.toFixed(2)}!`);
+                        } else {
+                            tg.showAlert('Better luck next time!');
+                        }
+                        spinWheel.style.transition = 'none';
+                        spinWheel.style.transform = `rotate(${finalDegree}deg)`;
+                        setTimeout(() => {
+                           spinWheel.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)';
+                           if(state.spinsLeft > 0) spinBtn.disabled = false;
+                        }, 50);
+                    }, 5500); // Wait for spin animation to finish
+                }
+            });
+            
+            // Ads button
+            loadAdBtn.addEventListener('click', () => {
+                // IMPORTANT: This is a simulation.
+                // Your ad network might have a function to call when an ad is shown or closed.
+                // You should call the reward logic inside that function (callback).
+                
+                // YAHAN APNA AD SCRIPT KA TRIGGER FUNCTION DAALEIN
+                // For example, if your ad script has a function like `showMyAd()`, you call it here.
+                
+                // For now, we simulate it with a popup.
+                tg.showPopup({
+                    title: 'Ad Loaded',
+                    message: `Ad is shown. You will receive ₹${REWARD_PER_AD} after closing this.`,
+                    buttons: [{type: 'ok', text: 'Close Ad'}]
+                }, () => {
+                    state.balance += REWARD_PER_AD;
+                    updateUI();
+                    saveData();
+                    tg.HapticFeedback.notificationOccurred('success');
+                });
+            });
+
+            // Withdrawal
+            submitWithdrawBtn.addEventListener('click', () => {
+                const name = document.getElementById('name').value;
+                const paymentInfo = document.getElementById('payment-info').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+                const userName = (tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.username : 'N/A';
+
+                if (!name || !paymentInfo || !amount) {
+                    tg.showAlert('Please fill all fields.'); return;
+                }
+                if (amount < MIN_WITHDRAWAL) {
+                    tg.showAlert(`Minimum withdrawal is ₹${MIN_WITHDRAWAL}.`); return;
+                }
+                if (amount > state.balance) {
+                    tg.showAlert("You don't have enough balance."); return;
+                }
+
+                submitWithdrawBtn.disabled = true;
+                submitWithdrawBtn.innerText = 'Submitting...';
+
+                const message = `
+💸 *New Withdrawal Request* 💸
+--------------------------------------
+*User:* \`@${userName}\`
+*Name:* ${name}
+*Payment Info:* \`${paymentInfo}\`
+*Amount:* *₹${amount.toFixed(2)}*
+--------------------------------------
+*Remaining Balance:* ₹${(state.balance - amount).toFixed(2)}
+                `;
+
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        state.balance -= amount;
+                        updateUI();
+                        saveData();
+                        tg.closeScanQrPopup();
+                        tg.showPopup({
+                            title: 'Success!',
+                            message: 'Your withdrawal request has been submitted. Payment will be processed within 48 hours.',
+                            buttons: [{type: 'ok'}]
+                        });
+                        document.getElementById('name').value = '';
+                        document.getElementById('payment-info').value = '';
+                        document.getElementById('amount').value = '';
+                    } else {
+                        tg.showAlert(`Error: ${data.description}`);
+                    }
+                })
+                .catch(error => tg.showAlert('Failed to send request. Check your internet.'))
+                .finally(() => {
+                    submitWithdrawBtn.disabled = false;
+                    submitWithdrawBtn.innerText = 'Submit Request';
+                });
+            });
+
+
+            // --- Initial Load ---
+            loadData();
+            updateUI();
+            showSection('tap-section'); // Show tap section by default
+        });
+    </script>
+</body>
+</html>
